@@ -1,7 +1,7 @@
 import { LogEntry } from "./types";
 
 export class Transport {
-    endpointURL: string;
+    private endpointURL: string;
 
     constructor(endpointURL: string) {
         this.endpointURL = endpointURL;
@@ -9,7 +9,7 @@ export class Transport {
 
     async send(logs: LogEntry[]) : Promise<{ success: boolean; error?: string }>{
         try {
-            const response = await fetch('https://placeholderbackend.com/logs', {
+            const response = await fetch(this.endpointURL, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -22,7 +22,7 @@ export class Transport {
             }
             return { success: true };
         } catch (error) {
-            return { success: false, error: error?.message || "Unknown error" };
+            return { success: false, error: (error as Error)?.message || "Unknown error" };
         }
     }
 }

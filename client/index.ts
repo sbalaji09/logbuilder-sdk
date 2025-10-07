@@ -1,7 +1,7 @@
 import { LogEntry, LogLevel, LogBuilderConfig } from "./types";
 import { Transport } from "./transport"; 
 
-class LogBuilder {
+export class LogBuilder {
     private config: LogBuilderConfig;
     private transport: Transport;
 
@@ -10,14 +10,14 @@ class LogBuilder {
             throw new Error("apiKey is required");
         }
         if (!config.projectID) {
-            throw new Error("projectId is required");
+            throw new Error("projectID is required");
         } 
     
         this.config = config;
         this.transport = new Transport(config.endpointURL || "https://default-endpoint.com/logs");
     }
 
-    private log(level: LogLevel, message: string, metadata?: Record<string, any>) {
+    private async log(level: LogLevel, message: string, metadata?: Record<string, any>) {
         const logEntry: LogEntry = {
             timeStamp: new Date().toISOString(),
             level,
@@ -26,7 +26,7 @@ class LogBuilder {
             projectID: this.config.projectID,
             environment: this.config.environment,
         };
-        this.transport.send([logEntry]);
+        await this.transport.send([logEntry]);
     }
 
     info(message: string, metadata?: Record<string, any>) {

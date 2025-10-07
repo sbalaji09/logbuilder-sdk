@@ -2,7 +2,7 @@ export interface LogBuilderConfig {
     apiKey: string,
     projectID: string,
     environment: string,
-    endpointURL?: string | "https://localhost:3000/callback",
+    endpointURL?: string,
     batchSize: number,
     flushInterval: number;
 }
