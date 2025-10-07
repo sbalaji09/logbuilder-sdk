@@ -1,3 +1,8 @@
+/**
+ * Uses AsyncLocalStorage to track contextual data (requestID, userID) throughout the request lifecycle
+ * The same context / data can be used across multiple async calls without the need to pass in the values again
+ */
+
 import { AsyncLocalStorage } from 'async_hooks';
 import { Request, Response, NextFunction } from 'express';
 

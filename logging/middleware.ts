@@ -1,3 +1,8 @@
+/**
+ * Middleware that automatically logs every HTTP request (method, URL, status code, response time, IP, user agent)
+ */
+
+
 import { LogBuilder } from "../client";
 
 import { Request, Response, NextFunction } from 'express';

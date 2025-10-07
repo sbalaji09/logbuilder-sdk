@@ -1,3 +1,8 @@
+/**
+ * This class sets up global error handlers to catch uncaught exceptions and unhandled promise rejections
+ * It logs crashes before the app dies
+ */
+
 import { LogBuilder } from "../client";
 
 export function setupErrorCapture(logger: LogBuilder) {

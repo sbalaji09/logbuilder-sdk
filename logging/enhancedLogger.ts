@@ -1,3 +1,8 @@
+/**
+ * Wraps LogBuilder with the LogContext file to include context data in every log
+ * Ex: if you set userId to 123 in context, all logs automatically include it
+ */
+
 import { LogBuilder } from "../client";
 import { LogContext } from "./context";
 
