@@ -26,7 +26,9 @@ export class LogBuilder {
             projectID: this.config.projectID,
             environment: this.config.environment,
         };
-        await this.transport.send([logEntry]);
+        this.transport.send([logEntry]).catch(err => {
+            console.error('[LogBuilder] Failed to send log:', err);
+        });
     }
 
     info(message: string, metadata?: Record<string, any>) {
