@@ -1,3 +1,8 @@
+/*
+This class initializes the LogBuilder class that users initialize with their API key and project ID
+Allows users to create log entries
+*/
+
 import { LogEntry, LogLevel, LogBuilderConfig } from "./types";
 import { Transport } from "./transport"; 
 

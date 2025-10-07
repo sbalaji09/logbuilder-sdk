@@ -1,3 +1,7 @@
+/**
+ * Handles HTTP communication by taking log entries and using a POST request to send them to the backend endpoint
+ */
+
 import { LogEntry } from "./types";
 
 export class Transport {

@@ -1,3 +1,8 @@
+/**
+ * Defines the different data structures:
+ * Log entry, configuration options, transport response
+ */
+
 export interface LogBuilderConfig {
     apiKey: string,
     projectID: string,
