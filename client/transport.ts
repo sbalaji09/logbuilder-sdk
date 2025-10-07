@@ -1,6 +1,6 @@
 import { LogEntry } from "./types";
 
-class Transport {
+export class Transport {
     endpointURL: string;
 
     constructor(endpointURL: string) {

@@ -1,6 +1,6 @@
 export interface LogBuilderConfig {
     apiKey: string,
-    projectID: number,
+    projectID: string,
     environment: string,
     endpointURL?: string | "https://localhost:3000/callback",
     batchSize: number,
