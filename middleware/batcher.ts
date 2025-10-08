@@ -24,25 +24,25 @@ export class Batcher {
         }, this.flushInterval);
     }
 
-    add(log_entry: LogEntry) {
+    private add(log_entry: LogEntry) {
         this.logs.push(log_entry)
         if (this.logs.length >= this.batchSize) {
             this.flush();
         }
     }
 
-    flush() {
+    private flush() {
         if (this.logs.length === 0) {
             return [];
         }
-        
+
         const temp_logs: LogEntry[] = [...this.logs];
         this.logs.length = 0;
         this.onFlush(temp_logs);
         return temp_logs;
     }
 
-    stop() {
+    private stop() {
         if (this.timer) {
             clearInterval(this.timer);
             this.timer = null;

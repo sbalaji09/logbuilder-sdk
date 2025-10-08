@@ -55,7 +55,7 @@ export class RetryQueue {
         }
     }
 
-    async drain() {
+    private async drain() {
         while (this.queue.length > 0) {
             const item = this.queue[0];
             try {
