@@ -14,11 +14,7 @@ export class RateLimiter {
         // Remove timestamps older than 1 second
         this.requestTimestamps = this.requestTimestamps.filter(ts => now - ts < 1000);
         
-        if (this.requestTimestamps.length < this.max_requests_per_second) {
-            return true;
-            this.recordSend()
-        }
-        return false;
+        return this.requestTimestamps.length < this.max_requests_per_second;
     }
 
     async wait(): Promise<void> {

@@ -40,7 +40,7 @@ export class RetryQueue {
                     this.queue.splice(i, 1);
                 } catch {
                     item.retryCount++;
-                    if (item.retryCount > this.maxRetries) {
+                    if (item.retryCount >= this.maxRetries) {
                         this.queue.splice(i, 1);
                     } else {
                         i++;
@@ -63,7 +63,7 @@ export class RetryQueue {
                 this.queue.shift();
             } catch {
                 item.retryCount++;
-                if (item.retryCount > this.maxRetries) {
+                if (item.retryCount >= this.maxRetries) {
                     this.queue.shift();
                 } else {
                     break;

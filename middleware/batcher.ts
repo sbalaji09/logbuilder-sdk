@@ -32,8 +32,13 @@ export class Batcher {
     }
 
     flush() {
+        if (this.logs.length === 0) {
+            return [];
+        }
+        
         const temp_logs: LogEntry[] = [...this.logs];
         this.logs.length = 0;
+        this.onFlush(temp_logs);
         return temp_logs;
     }
 
