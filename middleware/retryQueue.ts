@@ -8,11 +8,11 @@ interface RetryItem {
 }
 
 export class RetryQueue {
-    queue: RetryItem[];
-    maxRetries: number;
-    sendFunction: SendFunction;
-    processing: boolean;
-    timerId: ReturnType<typeof setTimeout> | null;
+    private queue: RetryItem[];
+    private maxRetries: number;
+    private sendFunction: SendFunction;
+    private processing: boolean;
+    private timerId: ReturnType<typeof setTimeout> | null;
 
     constructor(sendfunction: SendFunction, maxRetries: number = 5) {
         this.queue = [];
@@ -22,11 +22,11 @@ export class RetryQueue {
         this.timerId = null;
     }
 
-    enqueue(logs: LogEntry[], error: Error) {
+    enqueue(logs: LogEntry[]) {
         this.queue.push({logs, retryCount: 0})
         this.scheduleProcessing();
     }
-    
+
     private async processRetries() {
         this.processing = true;
         try {
@@ -55,7 +55,7 @@ export class RetryQueue {
         }
     }
 
-    private async drain() {
+    async drain() {
         while (this.queue.length > 0) {
             const item = this.queue[0];
             try {
