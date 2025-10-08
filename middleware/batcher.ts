@@ -5,12 +5,18 @@ export class Batcher {
     batchSize: number;
     flushInterval: number;
     logs: LogEntry[];
-    timer: NodeJS.Timer | null;
+    timer: NodeJS.Timeout | null;
+    onFlush: (logs: LogEntry[]) => void;
 
-    constructor(batch_size: number, flush_interval: number) {
-        this.batchSize = batch_size
-        this.flushInterval = flush_interval
-        this.logs = []
+    constructor(
+        batch_size: number,
+        flush_interval: number,
+        onFlush: (logs: LogEntry[]) => void
+    ) {
+        this.batchSize = batch_size;
+        this.flushInterval = flush_interval;
+        this.logs = [];
+        this.onFlush = onFlush;
         this.timer = setInterval(() => {
             if (this.logs.length > 0) {
                 this.flush();

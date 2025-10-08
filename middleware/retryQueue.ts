@@ -11,42 +11,51 @@ export class RetryQueue {
     queue: RetryItem[];
     maxRetries: number;
     sendFunction: SendFunction;
+    processing: boolean;
+    timerId: ReturnType<typeof setTimeout> | null;
 
     constructor(sendfunction: SendFunction, maxRetries: number = 5) {
-        this.queue = []
+        this.queue = [];
         this.maxRetries = maxRetries;
         this.sendFunction = sendfunction;
+        this.processing = false;
+        this.timerId = null;
     }
 
     enqueue(logs: LogEntry[], error: Error) {
         this.queue.push({logs, retryCount: 0})
+        this.scheduleProcessing();
     }
     
-    async processRetries() {
-        for (let i = 0; i < this.queue.length;) {
-            const item = this.queue[i];
-            const delay = 1000 * Math.pow(2, item.retryCount);
-            await new Promise(res => setTimeout(res, delay));
+    private async processRetries() {
+        this.processing = true;
+        try {
+            for (let i = 0; i < this.queue.length; ) {
+                const item = this.queue[i];
+                const delay = 1000 * Math.pow(2, item.retryCount);
+                await new Promise(res => setTimeout(res, delay));
 
-            try {
-                await this.sendFunction(item.logs);
-
-                // On success remove from queue
-                this.queue.splice(i, 1);
-            } catch {
-                item.retryCount++;
-                if (item.retryCount > this.maxRetries) {
-                    // Drop batch after max retries
+                try {
+                    await this.sendFunction(item.logs);
                     this.queue.splice(i, 1);
-                } else {
-                    i++;
+                } catch {
+                    item.retryCount++;
+                    if (item.retryCount > this.maxRetries) {
+                        this.queue.splice(i, 1);
+                    } else {
+                        i++;
+                    }
                 }
+            }
+        } finally {
+            this.processing = false;
+            if (this.queue.length > 0) {
+                this.scheduleProcessing();
             }
         }
     }
 
     async drain() {
-        // Process all retries immediately without delay
         while (this.queue.length > 0) {
             const item = this.queue[0];
             try {
@@ -57,10 +66,21 @@ export class RetryQueue {
                 if (item.retryCount > this.maxRetries) {
                     this.queue.shift();
                 } else {
-                    // If failed retry again later on next drain
-                    break; 
+                    break;
                 }
             }
+        }
+    }
+
+
+    private scheduleProcessing() {
+        if (!this.processing && !this.timerId && this.queue.length > 0) {
+            this.timerId = setTimeout(() => {
+                this.timerId = null;
+                this.processRetries().catch(() => {
+                    // Handle error or ignore to prevent unhandled rejection
+                });
+            }, 0);
         }
     }
 }

@@ -9,16 +9,20 @@ export class RateLimiter {
         this.requestTimestamps = [];
     }
 
-    canSend(log: LogEntry): boolean {
+    canSend(): boolean {
         const now = Date.now();
         // Remove timestamps older than 1 second
         this.requestTimestamps = this.requestTimestamps.filter(ts => now - ts < 1000);
-
-        return this.requestTimestamps.length < this.max_requests_per_second;
+        
+        if (this.requestTimestamps.length < this.max_requests_per_second) {
+            return true;
+            this.recordSend()
+        }
+        return false;
     }
 
     async wait(): Promise<void> {
-        while (!this.canSend(null as unknown as LogEntry)) {
+        while (!this.canSend()) {
             const now = Date.now();
             // Calculate when the earliest timestamp expires (1 second after)
             const earliest = this.requestTimestamps[0];
