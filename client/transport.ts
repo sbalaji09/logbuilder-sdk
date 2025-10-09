@@ -6,9 +6,11 @@ import { LogEntry } from "./types";
 
 export class Transport {
     private endpointURL: string;
+    private apiKey: string;
 
-    constructor(endpointURL: string) {
+    constructor(endpointURL: string, apiKey: string) {
         this.endpointURL = endpointURL;
+        this.apiKey = apiKey;
     }
 
     async send(logs: LogEntry[]) : Promise<{ success: boolean; error?: string }>{
@@ -16,17 +18,19 @@ export class Transport {
             const response = await fetch(this.endpointURL, {
                 method: 'POST',
                 headers: {
-                  'Content-Type': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.apiKey}`,
                 },
                 body: JSON.stringify(logs),
-              });
+            });
           
             if (!response.ok) {
+                // Throw so RetryQueue can handle this as an error
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             return { success: true };
         } catch (error) {
-            return { success: false, error: (error as Error)?.message || "Unknown error" };
+            throw error;
         }
     }
 }
