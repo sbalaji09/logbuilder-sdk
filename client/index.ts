@@ -5,10 +5,14 @@ Allows users to create log entries
 
 import { LogEntry, LogLevel, LogBuilderConfig } from "./types";
 import { Transport } from "./transport"; 
+import { Batcher } from "../middleware/batcher";
+import { RetryQueue } from "../middleware/retryQueue";
 
 export class LogBuilder {
     private config: LogBuilderConfig;
     private transport: Transport;
+    private batcher: Batcher;
+    private retryQueue: RetryQueue;
 
     constructor(config: LogBuilderConfig) {
         if (!config.apiKey) {
@@ -16,13 +20,37 @@ export class LogBuilder {
         }
         if (!config.projectID) {
             throw new Error("projectID is required");
-        } 
-    
+        }
+
         this.config = config;
-        this.transport = new Transport(config.endpointURL || "https://default-endpoint.com/logs");
+        this.transport = new Transport(
+            config.endpointURL || "https://default-endpoint.com/logs",
+            config.apiKey
+        );
+
+        // Set up retry queue
+        this.retryQueue = new RetryQueue(
+            async (logs: LogEntry[]) => {
+                await this.transport.send(logs);
+            }
+        );
+
+        // Set up batcher with onFlush callback that sends logs via transport, using RetryQueue on failure
+        this.batcher = new Batcher(
+            config.batchSize || 10,
+            config.flushInterval || 5000,
+            async (logs: LogEntry[]) => {
+                try {
+                    await this.transport.send(logs);
+                } catch (err) {
+                    // If send fails, add to retry queue
+                    this.retryQueue.enqueue(logs, err as Error);
+                }
+            }
+        );
     }
 
-    private async log(level: LogLevel, message: string, metadata?: Record<string, any>) {
+    private log(level: LogLevel, message: string, metadata?: Record<string, any>) {
         const logEntry: LogEntry = {
             timeStamp: new Date().toISOString(),
             level,
@@ -31,9 +59,7 @@ export class LogBuilder {
             projectID: this.config.projectID,
             environment: this.config.environment,
         };
-        this.transport.send([logEntry]).catch(err => {
-            console.error('[LogBuilder] Failed to send log:', err);
-        });
+        this.batcher.add(logEntry);
     }
 
     info(message: string, metadata?: Record<string, any>) {
@@ -47,15 +73,24 @@ export class LogBuilder {
     error(message: string, metadata?: Record<string, any>) {
         this.log('error', message, metadata);
     }
-    
+
     debug(message: string, metadata?: Record<string, any>) {
         this.log('debug', message, metadata);
     }
 
-    flush() {
-        // Nothing to do yet, since sending is immediate
-        // If batching is added, send pending logs here
-        return Promise.resolve();
+    // Graceful shutdown: flush batcher and drain retry queue
+    async shutdown() {
+        // Flush pending logs
+        await this.batcher.flush();
+        // Stop periodic flushing
+        this.batcher.stop();
+        // Drain retry queue for any failed batches
+        await this.retryQueue.drain();
+    }
+
+    // Optionally, expose a flush method for manual flush
+    async flush() {
+        await this.batcher.flush();
     }
 
 }

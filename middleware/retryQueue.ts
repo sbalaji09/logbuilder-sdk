@@ -22,7 +22,7 @@ export class RetryQueue {
         this.timerId = null;
     }
 
-    enqueue(logs: LogEntry[]) {
+    enqueue(logs: LogEntry[], p0: Error) {
         this.queue.push({logs, retryCount: 0})
         this.scheduleProcessing();
     }
