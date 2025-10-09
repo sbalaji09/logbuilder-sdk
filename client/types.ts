@@ -15,12 +15,12 @@ export interface LogBuilderConfig {
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 export interface LogEntry {
-    timeStamp: string,
+    timestamp?: string,
+    source: string,
     level: LogLevel,
     message: string,
-    metadata?: Record<string, any>,
-    projectID: string,
-    environment: string;
+    service?: string,
+    fields?: Record<string, string>;
 }
 
 export interface TransportResponse {

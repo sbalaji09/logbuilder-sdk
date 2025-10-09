@@ -47,14 +47,22 @@ export class LogBuilder {
 
     private log(level: LogLevel, message: string, metadata?: Record<string, any>) {
         const logEntry: LogEntry = {
-            timeStamp: new Date().toISOString(),
+            timestamp: new Date().toISOString(),
+            source: 'sdk',
             level,
             message,
-            metadata,
-            projectID: this.config.projectID,
-            environment: this.config.environment,
+            service: `${this.config.projectID}-${this.config.environment}`,
+            fields: metadata ? this.convertToStringMap(metadata) : undefined,
         };
         this.batcher.add(logEntry);
+    }
+
+    private convertToStringMap(metadata: Record<string, any>): Record<string, string> {
+        const stringMap: Record<string, string> = {};
+        for (const [key, value] of Object.entries(metadata)) {
+            stringMap[key] = typeof value === 'string' ? value : JSON.stringify(value);
+        }
+        return stringMap;
     }
 
     info(message: string, metadata?: Record<string, any>) {

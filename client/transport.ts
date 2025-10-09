@@ -14,13 +14,18 @@ export class Transport {
     }
 
     async send(logs: LogEntry[]): Promise<{ success: boolean; error?: string }> {
+        // Wrap logs array in BatchIngestRequest format expected by backend
+        const batchRequest = {
+            logs: logs
+        };
+
         const response = await fetch(this.endpointURL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${this.apiKey}`,
             },
-            body: JSON.stringify(logs),
+            body: JSON.stringify(batchRequest),
         });
 
         if (!response.ok) {
