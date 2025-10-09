@@ -40,7 +40,7 @@ export class LogBuilder {
             config.batchSize || 40,
             config.flushInterval || 5000,
             (logs: LogEntry[]) => {
-                onFlush: (logs) => this.sendBatch(logs);
+                this.sendBatch(logs);
             }
         );
     }
