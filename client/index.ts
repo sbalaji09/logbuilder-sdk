@@ -37,15 +37,10 @@ export class LogBuilder {
 
         // Set up batcher with onFlush callback that sends logs via transport, using RetryQueue on failure
         this.batcher = new Batcher(
-            config.batchSize || 10,
+            config.batchSize || 40,
             config.flushInterval || 5000,
-            async (logs: LogEntry[]) => {
-                try {
-                    await this.transport.send(logs);
-                } catch (err) {
-                    // If send fails, add to retry queue
-                    this.retryQueue.enqueue(logs, err as Error);
-                }
+            (logs: LogEntry[]) => {
+                onFlush: (logs) => this.sendBatch(logs);
             }
         );
     }
@@ -81,7 +76,7 @@ export class LogBuilder {
     // Graceful shutdown: flush batcher and drain retry queue
     async shutdown() {
         // Flush pending logs
-        await this.batcher.flush();
+        this.batcher.flush();
         // Stop periodic flushing
         this.batcher.stop();
         // Drain retry queue for any failed batches
@@ -90,7 +85,15 @@ export class LogBuilder {
 
     // Optionally, expose a flush method for manual flush
     async flush() {
-        await this.batcher.flush();
+        this.batcher.flush();
+    }
+
+    private async sendBatch(logs: LogEntry[]) {
+        try {
+            await this.transport.send(logs);
+        } catch (err) {
+            this.retryQueue.enqueue(logs);
+        }
     }
 
 }
